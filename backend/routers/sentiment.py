@@ -77,16 +77,19 @@ async def analyze_sentiment(
     # Step 4: Aggregate sentiment
     aggregated = finbert_service.aggregate_sentiment(sentiments)
     
-    # Step 5: Generate explanation
+    # Step 5: Generate explanation with stock data
+    # Get stock data first
+    stock_data = stock_data_service.get_stock_info(stock_upper)
+    
     explanation = generate_explanation(
         company_name,
         stock_upper,
         aggregated,
-        analyzed_news
+        analyzed_news,
+        stock_data  # Pass stock info for comprehensive summary
     )
     
-    # Get stock data
-    stock_data = stock_data_service.get_stock_info(stock_upper)
+    # Get historical data
     historical_data = stock_data_service.get_historical_data(stock_upper, period="1mo")
     
     # Step 6: Calculate Sentiment vs Price Trend
@@ -175,21 +178,44 @@ async def analyze_sentiment(
         "sector_name": sector_name
     }
 
-def generate_explanation(company_name: str, ticker: str, aggregated: dict, news: list) -> str:
-    """Generate AI explanation of sentiment analysis"""
+def generate_explanation(company_name: str, ticker: str, aggregated: dict, news: list, stock_info: dict = None) -> str:
+    """Generate comprehensive AI explanation with sentiment + fundamentals"""
     
     label = aggregated['label']
     score = aggregated['total_score']
     pos_count = aggregated['positive_count']
     neg_count = aggregated['negative_count']
     
-    # First paragraph: Overall sentiment
+    # Extract stock fundamentals if available
+    price_info = ""
+    if stock_info and stock_info.get('current_price', 0) > 0:
+        price = stock_info.get('current_price', 0)
+        mcap = stock_info.get('market_cap', 0)
+        pe = stock_info.get('pe_ratio', 0)
+        vol = stock_info.get('volume', 0)
+        
+        # Format market cap
+        if mcap >= 1e12:
+            mcap_str = f"₹{mcap/1e12:.2f}T"
+        elif mcap >= 1e9:
+            mcap_str = f"₹{mcap/1e9:.2f}B"
+        elif mcap >= 1e7:
+            mcap_str = f"₹{mcap/1e7:.2f}Cr"
+        else:
+            mcap_str = f"₹{mcap/1e6:.2f}M"
+        
+        # Format volume
+        vol_str = f"{vol/1e6:.2f}M" if vol >= 1e6 else f"{vol/1e3:.0f}K"
+        
+        price_info = f" The stock is currently trading at ₹{price:.2f} with a market capitalization of {mcap_str}, P/E ratio of {pe:.2f}, and today's volume at {vol_str} shares."
+    
+    # First paragraph: Overall sentiment with fundamentals
     if label == 'bullish':
-        para1 = f"Our FinBERT-India AI model has analyzed recent news coverage for {company_name} ({ticker}) and identified a **strongly bullish** sentiment with an aggregate score of {score:.2f}. Out of {len(news)} analyzed articles, {pos_count} conveyed positive sentiment while {neg_count} were negative, indicating strong market optimism and favorable news flow for the stock."
+        para1 = f"Our FinBERT-India AI model has analyzed recent news coverage for {company_name} ({ticker}) and identified a **strongly bullish** sentiment with an aggregate score of {score:.2f}. Out of {len(news)} analyzed articles, {pos_count} conveyed positive sentiment while {neg_count} were negative, indicating strong market optimism and favorable news flow for the stock.{price_info}"
     elif label == 'bearish':
-        para1 = f"Our FinBERT-India AI model has analyzed recent news coverage for {company_name} ({ticker}) and identified a **bearish** sentiment with an aggregate score of {score:.2f}. Out of {len(news)} analyzed articles, {neg_count} conveyed negative sentiment while {pos_count} were positive, suggesting market concerns and unfavorable news developments affecting the stock."
+        para1 = f"Our FinBERT-India AI model has analyzed recent news coverage for {company_name} ({ticker}) and identified a **bearish** sentiment with an aggregate score of {score:.2f}. Out of {len(news)} analyzed articles, {neg_count} conveyed negative sentiment while {pos_count} were positive, suggesting market concerns and unfavorable news developments affecting the stock.{price_info}"
     else:
-        para1 = f"Our FinBERT-India AI model has analyzed recent news coverage for {company_name} ({ticker}) and identified a **neutral** sentiment with an aggregate score of {score:.2f}. Out of {len(news)} analyzed articles, {pos_count} were positive and {neg_count} were negative, indicating balanced market sentiment with mixed news flow and no clear directional bias."
+        para1 = f"Our FinBERT-India AI model has analyzed recent news coverage for {company_name} ({ticker}) and identified a **neutral** sentiment with an aggregate score of {score:.2f}. Out of {len(news)} analyzed articles, {pos_count} were positive and {neg_count} were negative, indicating balanced market sentiment with mixed news flow and no clear directional bias.{price_info}"
     
     # Second paragraph: Key insights
     if news:
