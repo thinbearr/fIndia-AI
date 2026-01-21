@@ -39,6 +39,7 @@ function AppContent() {
     // State
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<Stock[]>([]);
+    const [selectedStock, setSelectedStock] = useState<string>('');
     const [sentimentData, setSentimentData] = useState<SentimentData | null>(null);
     const [isLoadingSentiment, setIsLoadingSentiment] = useState(false);
     const [error, setError] = useState<string>('');
