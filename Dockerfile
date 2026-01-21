@@ -11,15 +11,14 @@ RUN apt-get update && apt-get install -y \
 # Initialize Git LFS
 RUN git lfs install
 
-# Copy requirements
-COPY backend/requirements.txt .
+# Copy entire project first
+COPY . .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r backend/requirements.txt
 
-# Copy backend code
-COPY backend/ .
-COPY models/ /app/models/
+# Set working directory to backend
+WORKDIR /app/backend
 
 # Expose port
 EXPOSE 7860
