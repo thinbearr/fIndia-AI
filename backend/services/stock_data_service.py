@@ -14,11 +14,20 @@ class StockDataService:
         Get comprehensive stock information
         """
         try:
-            # Add .NS for NSE stocks (National Stock Exchange of India)
-            stock_symbol = f"{ticker}.NS"
-            stock = yf.Ticker(stock_symbol)
+            # Try NSE first
+            stock_symbol_ns = f"{ticker}.NS"
+            stock = yf.Ticker(stock_symbol_ns)
             info = stock.info
             
+            # If fast_info is empty or price is missing, try BSE
+            if not info or 'currentPrice' not in info:
+                stock_symbol_bo = f"{ticker}.BO"
+                stock = yf.Ticker(stock_symbol_bo)
+                info = stock.info
+            
+            if not info:
+                 raise ValueError("No data found for ticker")
+
             # Extract key metrics
             return {
                 'ticker': ticker,
@@ -45,10 +54,13 @@ class StockDataService:
             print(f"Error fetching stock data for {ticker}: {e}")
             return {
                 'ticker': ticker,
+                'company_name': ticker, # Return ticker as name on error
                 'error': str(e),
                 'current_price': 0,
                 'market_cap': 0,
-                'pe_ratio': 0
+                'pe_ratio': 0,
+                'volume': 0,
+                'previous_close': 0
             }
     
     def get_historical_data(self, ticker: str, period: str = "1mo") -> List[Dict]:
@@ -57,9 +69,16 @@ class StockDataService:
         period: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max
         """
         try:
+            # Try NSE
             stock_symbol = f"{ticker}.NS"
             stock = yf.Ticker(stock_symbol)
             hist = stock.history(period=period)
+            
+            # If empty, try BSE
+            if hist.empty:
+                stock_symbol = f"{ticker}.BO"
+                stock = yf.Ticker(stock_symbol)
+                hist = stock.history(period=period)
             
             # Convert to list of dicts
             data = []
