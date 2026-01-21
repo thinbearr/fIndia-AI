@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { sendChatMessage, ChatResponse } from './api';
+import { sendChatMessage } from './api';
 import { useAuth } from './AuthContext';
 
 interface Message {

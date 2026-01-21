@@ -3,7 +3,7 @@
  * Bloomberg-style AI intelligence terminal for Indian stock markets
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import { AuthProvider, useAuth } from './AuthContext';
 import { Chatbot } from './Chatbot';
@@ -11,15 +11,10 @@ import { DynamicBackground } from './DynamicBackground';
 import {
     searchStocks,
     getSentiment,
-    getWatchlist,
-    addToWatchlist,
-    removeFromWatchlist,
     Stock,
     SentimentData,
-    WatchlistItem,
 } from './api';
 import {
-    LineChart,
     Line,
     XAxis,
     YAxis,
@@ -30,10 +25,6 @@ import {
     AreaChart,
     Area,
     ComposedChart,
-    Bar,
-    BarChart,
-    Cell,
-    ReferenceLine,
 } from 'recharts';
 
 declare global {
@@ -43,17 +34,15 @@ declare global {
 }
 
 function AppContent() {
-    const { user, isAuthenticated, logout, isLoading: authLoading } = useAuth();
+    const { user, isAuthenticated, logout } = useAuth();
 
-    // State
     // State
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<Stock[]>([]);
-    const [selectedStock, setSelectedStock] = useState<string>('');
     const [sentimentData, setSentimentData] = useState<SentimentData | null>(null);
     const [isLoadingSentiment, setIsLoadingSentiment] = useState(false);
     const [error, setError] = useState<string>('');
-    const [darkMode, setDarkMode] = useState(true); // Forced Dark Mode
+    const [darkMode] = useState(true); // Forced Dark Mode
 
     // ... (keep handleSearch, handleSelectStock, etc.)
 
