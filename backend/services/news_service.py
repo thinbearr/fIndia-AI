@@ -82,23 +82,20 @@ class NewsService:
                         items = root.findall('.//item')
                         
                         articles = []
-                        for item in items[:15]: # Limit to 15
+                        for item in items[:15]: 
                             title = item.find('title').text
                             if not title: continue
                                 
-                            # Clean title (remove source suffix generally after ' - ')
-                            clean_title = title.split(' - ')[0]
+                            # Clean title 
+                            clean_title = self._clean_text(title.split(' - ')[0])
                             
                             desc_elem = item.find('description')
-                            desc = desc_elem.text if desc_elem is not None else ""
+                            raw_desc = desc_elem.text if desc_elem is not None else ""
                             
-                            # RSS description usually has HTML links, strip them logic or use regex
-                            # simple clean:
-                            clean_desc = re.sub('<[^<]+?>', '', desc)
-                            # Remove "View Full coverage" artifacts
-                            clean_desc = clean_desc.replace("View Full coverage on Google News", "").strip()
+                            # Robust cleaning
+                            clean_desc = self._clean_text(raw_desc)
                             
-                            # If description is too short, use title as desc
+                            # If description is too short or empty, use title
                             if len(clean_desc) < 20:
                                 clean_desc = clean_title
                                 
@@ -115,10 +112,41 @@ class NewsService:
                             })
                             
                         return articles
+                        
         except Exception as e:
             print(f"RSS Fetch Error: {e}")
         
         return []
+
+    def _clean_text(self, text: str) -> str:
+        """Clean HTML artifacts from text"""
+        import re
+        import html
+        
+        if not text: return ""
+        
+        # 1. Start with HTML unescape (&nbsp; -> space, &amp; -> &, etc.)
+        text = html.unescape(text)
+        
+        # 2. Remove HTML tags
+        text = re.sub('<[^<]+?>', '', text)
+        
+        # 3. Remove common Google News artifacts
+        artifacts = [
+            "View Full coverage on Google News",
+            "Read more on",
+            "Full story",
+            "Business Standard",  # Often appended
+            "Economic Times",
+            "Moneycontrol"
+        ]
+        for artifact in artifacts:
+            text = text.replace(artifact, "")
+            
+        # 4. Remove extra whitespace
+        text = " ".join(text.split())
+        
+        return text
     
     async def _fetch_from_newsapi(self, company_name: str, days: int) -> List[Dict]:
         """Fetch from NewsAPI.org"""
