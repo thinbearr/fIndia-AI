@@ -99,16 +99,18 @@ function AppContent() {
         }
     };
 
-    const formatCurrency = (value: number) => {
-        if (value >= 10000000) return `₹${(value / 10000000).toFixed(2)}Cr`;
-        else if (value >= 100000) return `₹${(value / 100000).toFixed(2)}L`;
-        return `₹${value.toFixed(2)}`;
+    const formatCurrency = (value: number | undefined | null) => {
+        const val = value || 0;
+        if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)}Cr`;
+        else if (val >= 100000) return `₹${(val / 100000).toFixed(2)}L`;
+        return `₹${val.toFixed(2)}`;
     };
 
-    const formatMarketCap = (value: number) => {
-        if (value >= 1000000000000) return `₹${(value / 1000000000000).toFixed(2)}T`;
-        else if (value >= 10000000000) return `₹${(value / 10000000000).toFixed(2)}B`;
-        return formatCurrency(value);
+    const formatMarketCap = (value: number | undefined | null) => {
+        const val = value || 0;
+        if (val >= 1000000000000) return `₹${(val / 1000000000000).toFixed(2)}T`;
+        else if (val >= 10000000000) return `₹${(val / 10000000000).toFixed(2)}B`;
+        return formatCurrency(val);
     };
 
     const prepareChartData = () => {
