@@ -204,9 +204,9 @@ def generate_explanation(company_name: str, ticker: str, aggregated: dict, news:
     
     # Reliability Text
     if reliability > 70:
-        rel_text = f"High Precision: The model has demonstrated {reliability:.1f}% accuracy in predicting {ticker}'s recent price moves based on news sentiment."
+        rel_text = f"High Precision: The model has analyzed {ticker}'s recent patterns and identified a strong alignment between news sentiment and price action."
     else:
-        rel_text = f"Moderate Precision: The model shows {reliability:.1f}% accuracy, suggesting {ticker}'s price is currently driven more by technicals than news flow."
+        rel_text = f"Moderate Precision: The model has analyzed {ticker}'s recent patterns and suggests price action is currently driven more by technicals than news flow."
         
     # Contagion Text
     if contagion < -0.3:
