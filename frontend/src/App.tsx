@@ -446,13 +446,7 @@ function AppContent() {
                                 </span>
                                 <span className="stat-sub" style={{ fontSize: '0.75rem', color: '#888' }}>Predictive Score</span>
                             </div>
-                            <div className="stat-card glass-card">
-                                <span className="stat-label">Sector Contagion</span>
-                                <span className="stat-value" style={{ color: (sentimentData.sector_sentiment_score || 0) >= 0 ? '#10b981' : '#ef4444' }}>
-                                    {(sentimentData.sector_sentiment_score || 0) > 0 ? '+' : ''}{(sentimentData.sector_sentiment_score || 0).toFixed(2)}
-                                </span>
-                                <span className="stat-sub" style={{ fontSize: '0.75rem', color: '#888' }}>{sentimentData.sector_name || 'Market'} Rank</span>
-                            </div>
+
                             <div className="stat-card glass-card">
                                 <span className="stat-label">Current Price</span>
                                 <span className="stat-value">
